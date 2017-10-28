@@ -9,6 +9,7 @@
 #include "EasyBMP.h"
 #include "linear.h"
 #include "argvparser.h"
+#include "HOG.h"
 
 using std::string;
 using std::vector;
@@ -81,12 +82,11 @@ void SavePredictions(const TFileList& file_list,
 void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
     for (size_t image_idx = 0; image_idx < data_set.size(); ++image_idx) {
         
-        // PLACE YOUR CODE HERE
-        // Remove this sample code and place your feature extraction code here
-        vector<float> one_image_features;
-        one_image_features.push_back(1.0);
-        features->push_back(make_pair(one_image_features, 1));
-        // End of sample code
+        Image src_image = bmp2image(std::get<0>(data_set[image_idx]));
+		auto label = std::get<1>(data_set[image_idx]);
+		Matrix<float> to_grayscale = grayscale(src_image);
+		std::vector<float> one_image_features = HOG(to_grayscale);
+		features->push_back(make_pair(one_image_features, label));
 
     }
 }
@@ -123,7 +123,7 @@ void TrainClassifier(const string& data_file, const string& model_file) {
 
         // PLACE YOUR CODE HERE
         // You can change parameters of classifier here
-    params.C = 0.01;
+    params.C = 1;
     TClassifier classifier(params);
         // Train classifier
     classifier.Train(features, &model);
